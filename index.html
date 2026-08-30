@@ -74,7 +74,7 @@
     .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; color: #fff; }
     .brand i { color: var(--accent); }
 
-    .nav-links { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 4px; }
+    .nav-links { display: flex; gap: 12px; }
     .nav-links a {
       color: var(--text-sub);
       text-decoration: none;
@@ -86,6 +86,101 @@
       white-space: nowrap;
     }
     .nav-links a:hover { color: #fff; background: rgba(255,255,255,0.08); }
+
+    /* Hamburger Menu Button */
+    .hamburger-btn {
+      display: none;
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 22px;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    /* Sidebar Drawer & Overlay */
+    .sidebar-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 1001;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0; left: -280px; width: 260px; height: 100%;
+      background: rgba(15, 23, 42, 0.95);
+      border-right: 1px solid var(--glass-border);
+      z-index: 1002;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+      transition: all 0.3s ease;
+    }
+
+    .sidebar.active {
+      left: 0;
+    }
+
+    .sidebar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--glass-border);
+      padding-bottom: 16px;
+    }
+
+    .sidebar-header .brand { font-size: 16px; }
+
+    .close-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      font-size: 20px;
+      cursor: pointer;
+    }
+    .close-btn:hover { color: #fff; }
+
+    .sidebar-links {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .sidebar-links a {
+      color: var(--text-sub);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 12px 16px;
+      border-radius: 12px;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sidebar-links a:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    /* Responsive Breakpoint for Navigation */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .hamburger-btn { display: block; }
+    }
 
     /* Card Component */
     .glass-card {
@@ -239,6 +334,25 @@
 </head>
 <body>
 
+  <!-- SIDEBAR OVERLAY -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- SIDEBAR DRAWER MENU -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <i class="fa-solid fa-user-gear"></i> Menu
+      </div>
+      <button class="close-btn" id="closeSidebar"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="sidebar-links">
+      <a href="#about" class="menu-link"><i class="fa-solid fa-user"></i> Tentang</a>
+      <a href="#skills" class="menu-link"><i class="fa-solid fa-wrench"></i> Keahlian</a>
+      <a href="#experience" class="menu-link"><i class="fa-solid fa-briefcase"></i> Pengalaman</a>
+      <a href="#certifications" class="menu-link"><i class="fa-solid fa-award"></i> Sertifikasi</a>
+    </div>
+  </div>
+
   <div class="container">
 
     <!-- NAVBAR HEADER -->
@@ -252,13 +366,15 @@
         <a href="#experience">Pengalaman</a>
         <a href="#certifications">Sertifikasi</a>
       </div>
+      <button class="hamburger-btn" id="openSidebar">
+        <i class="fa-solid fa-bars"></i>
+      </button>
     </div>
 
     <!-- PROFILE HERO SECTION -->
     <div id="about" class="glass-card">
       <div class="hero-profile">
         <div class="avatar-wrapper">
-          <!-- Ganti URL Foto Profil dengan file Anda -->
           <img src="Pas Photo.png" alt="Foto Profile">
         </div>
         <div class="hero-info">
@@ -269,7 +385,6 @@
           </p>
           
           <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-            <!-- Ganti href dengan tautan file PDF CV milik Anda -->
             <a href="CV MUHAMMAD RIKY H..pdf" download class="btn-action-primary">
               <i class="fa-solid fa-file-arrow-down"></i> Unduh CV (PDF)
             </a>
@@ -398,9 +513,24 @@
           <div class="cert-date">Lulus - Nov 2020</div>
         </div>
         <div class="cert-card">
+          <div class="cert-title">Basic Technician (MSTEP1)</div>
+          <div class="cert-issuer">PT Mitsubishi Motors Krama Yudha Sales Indonesia</div>
+          <div class="cert-date">Sertifikasi Teknis Otomotif</div>
+        </div>
+        <div class="cert-card">
           <div class="cert-title">Fuso Fleet Instructor (INSFT)</div>
           <div class="cert-issuer">PT Krama Yudha Tiga Berlian Motors</div>
           <div class="cert-date">Lulus - Jan 2020</div>
+        </div>
+        <div class="cert-card">
+          <div class="cert-title">Pelatihan & Magang Teknis Otomotif</div>
+          <div class="cert-issuer">PPPPTK VEDC Malang</div>
+          <div class="cert-date">Pelatihan Sistem Otomotif Lanjut</div>
+        </div>
+        <div class="cert-card">
+          <div class="cert-title">Praktik Kerja Industri (Magang)</div>
+          <div class="cert-issuer">PT Astra Daihatsu Motor</div>
+          <div class="cert-date">Pengalaman Lapangan & Pemeliharaan Kendaraan</div>
         </div>
         <div class="cert-card">
           <div class="cert-title">Elements of AI Certification</div>
@@ -417,5 +547,28 @@
 
   </div>
 
+  <!-- JAVASCRIPT FOR SIDEBAR MENU TOGGLE -->
+  <script>
+    const openSidebar = document.getElementById('openSidebar');
+    const closeSidebar = document.getElementById('closeSidebar');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const menuLinks = document.querySelectorAll('.menu-link');
+
+    function toggleMenu() {
+      sidebar.classList.toggle('active');
+      sidebarOverlay.classList.toggle('active');
+    }
+
+    openSidebar.addEventListener('click', toggleMenu);
+    closeSidebar.addEventListener('click', toggleMenu);
+    sidebarOverlay.addEventListener('click', toggleMenu);
+
+    menuLinks.forEach(link => {
+      link.addEventListener('click', toggleMenu);
+    });
+  </script>
+
 </body>
-</html>
+  </html>
+  
