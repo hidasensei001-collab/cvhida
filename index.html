@@ -63,7 +63,7 @@
     .lock-overlay {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(15, 23, 42, 0.3);
+      background: rgba(15, 23, 42, 0.5);
       z-index: 9999;
       display: flex;
       justify-content: center;
@@ -78,7 +78,8 @@
     }
 
     .lock-card {
-      background: rgba(30, 41, 59, 0.85);
+      position: relative;
+      background: rgba(30, 41, 59, 0.9);
       border: 1px solid var(--glass-border);
       border-radius: 24px;
       padding: 32px 28px;
@@ -88,6 +89,19 @@
       box-shadow: 0 20px 50px rgba(0,0,0,0.6);
       backdrop-filter: blur(12px);
     }
+
+    .close-modal-btn {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      font-size: 18px;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .close-modal-btn:hover { color: #fff; }
 
     .lock-icon {
       width: 60px;
@@ -132,7 +146,7 @@
       outline: none;
       transition: all 0.3s;
       text-align: center;
-      letter-spacing: 2px;
+      letter-spacing: 1px;
     }
 
     .pass-input-group input:focus {
@@ -165,6 +179,32 @@
     .btn-unlock:hover {
       transform: translateY(-2px);
       opacity: 0.95;
+    }
+
+    /* BANTUAN KODE DOWNLOAD */
+    .btn-no-code {
+      background: transparent;
+      border: none;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: underline;
+      margin-top: 14px;
+      transition: color 0.2s;
+    }
+    .btn-no-code:hover { color: #fff; }
+
+    .help-msg {
+      display: none;
+      color: #38bdf8;
+      font-size: 12px;
+      margin-top: 10px;
+      padding: 10px;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 10px;
+      font-weight: 600;
     }
 
     @keyframes shake {
@@ -459,7 +499,7 @@
 </head>
 <body>
 
-  <!-- MODAL / OVERLAY LOCK SCREEN -->
+  <!-- MODAL / OVERLAY LOCK SCREEN UTAMA (PAGELOCK) -->
   <div class="lock-overlay" id="lockOverlay">
     <div class="lock-card" id="lockCard">
       <div class="lock-icon">
@@ -479,6 +519,37 @@
           <i class="fa-solid fa-key"></i> Buka CV
         </button>
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL / OVERLAY KODE DOWNLOAD CV -->
+  <div class="lock-overlay hidden" id="downloadModal">
+    <div class="lock-card" id="dlCard">
+      <button class="close-modal-btn" onclick="closeDownloadModal()"><i class="fa-solid fa-xmark"></i></button>
+      <div class="lock-icon">
+        <i class="fa-solid fa-file-arrow-down"></i>
+      </div>
+      <h2>Kode Download CV</h2>
+      <p>Masukkan kode rahasia untuk mengunduh berkas PDF.</p>
+      
+      <form id="dlForm" onsubmit="processDownload(event)">
+        <div class="pass-input-group">
+          <input type="text" id="dlCodeInput" placeholder="Masukkan kode..." required autocomplete="off">
+        </div>
+        <div class="error-msg" id="dlErrorMsg">
+          <i class="fa-solid fa-circle-exclamation"></i> Kode kamu salah!
+        </div>
+        <button type="submit" class="btn-unlock">
+          <i class="fa-solid fa-download"></i> Unduh Berkas
+        </button>
+      </form>
+
+      <div>
+        <button type="button" class="btn-no-code" onclick="showHelpInfo()">Belum memiliki kode?</button>
+        <div class="help-msg" id="helpMsg">
+          <i class="fa-solid fa-circle-info"></i> kalo mau kode silahkan hubungi Riky yaa
+        </div>
+      </div>
     </div>
   </div>
 
@@ -534,9 +605,10 @@
           </p>
           
           <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-            <a href="CV MUHAMMAD RIKY H..pdf" download class="btn-action-primary">
+            <!-- Tombol unduh dipicu via JavaScript -->
+            <button type="button" onclick="openDownloadModal()" class="btn-action-primary">
               <i class="fa-solid fa-file-arrow-down"></i> Unduh CV (PDF)
-            </a>
+            </button>
             <div class="contact-row">
               <span><i class="fa-solid fa-location-dot"></i> Banjarbaru, Kalsel</span>
               <span><i class="fa-solid fa-phone"></i> +62 822-5595-0745</span>
@@ -696,12 +768,13 @@
 
   </div>
 
-  <!-- JAVASCRIPT UNTUK SIDEBAR & LOGIK PASSWORD -->
+  <!-- JAVASCRIPT UNTUK SIDEBAR & LOGIK PASSWORD/DOWNLOAD -->
   <script>
-    // --- ATUR PASSWORD KAMU DI SINI ---
+    // --- ATUR PASSWORD UTAMA DAN KODE DOWNLOAD DI SINI ---
     const SECRET_PASSWORD = "experience"; 
+    const DOWNLOAD_CODE = "unduh";
 
-    // Logik Verifikasi Password
+    // 1. Logik Verifikasi Password Akses Halaman
     function unlockCV(event) {
       event.preventDefault();
       const input = document.getElementById('passInput').value;
@@ -711,12 +784,8 @@
       const mainContent = document.getElementById('mainContent');
 
       if (input === SECRET_PASSWORD) {
-        // Hilangkan blur pada konten utama
         mainContent.classList.remove('content-blurred');
-        // Sembunyikan overlay password
         lockOverlay.classList.add('hidden');
-        
-        // Simpan status unlock di session agar kalau di-refresh tidak perlu ketik ulang
         sessionStorage.setItem('cv_unlocked', 'true');
       } else {
         errorMsg.style.display = 'block';
@@ -727,7 +796,7 @@
       }
     }
 
-    // Cek apakah user sudah pernah masukkan password di sesi ini
+    // Cek status lock saat halaman dimuat
     window.addEventListener('DOMContentLoaded', () => {
       if (sessionStorage.getItem('cv_unlocked') === 'true') {
         document.getElementById('mainContent').classList.remove('content-blurred');
@@ -735,7 +804,50 @@
       }
     });
 
-    // Logik Navigation Sidebar Menu
+    // 2. Logik Modal Download CV
+    function openDownloadModal() {
+      document.getElementById('downloadModal').classList.remove('hidden');
+      document.getElementById('dlCodeInput').focus();
+    }
+
+    function closeDownloadModal() {
+      document.getElementById('downloadModal').classList.add('hidden');
+      document.getElementById('dlErrorMsg').style.display = 'none';
+      document.getElementById('helpMsg').style.display = 'none';
+      document.getElementById('dlCodeInput').value = '';
+    }
+
+    function processDownload(event) {
+      event.preventDefault();
+      const inputCode = document.getElementById('dlCodeInput').value.trim().toLowerCase();
+      const dlErrorMsg = document.getElementById('dlErrorMsg');
+      const dlCard = document.getElementById('dlCard');
+
+      if (inputCode === DOWNLOAD_CODE) {
+        // Buat elemen link darurat untuk eksekusi download
+        const a = document.createElement('a');
+        a.href = 'CV MUHAMMAD RIKY H..pdf';
+        a.download = 'CV MUHAMMAD RIKY H..pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        // Tutup modal setelah mengunduh
+        closeDownloadModal();
+      } else {
+        dlErrorMsg.style.display = 'block';
+        dlCard.classList.add('shake');
+        setTimeout(() => {
+          dlCard.classList.remove('shake');
+        }, 400);
+      }
+    }
+
+    function showHelpInfo() {
+      document.getElementById('helpMsg').style.display = 'block';
+    }
+
+    // 3. Logik Navigation Sidebar Menu
     const openSidebar = document.getElementById('openSidebar');
     const closeSidebar = document.getElementById('closeSidebar');
     const sidebar = document.getElementById('sidebar');
