@@ -52,6 +52,131 @@
       z-index: -1;
     }
 
+    /* CSS EFEK BLUR & LOCK SCREEN */
+    .content-blurred {
+      filter: blur(16px);
+      pointer-events: none;
+      user-select: none;
+      transition: filter 0.5s ease;
+    }
+
+    .lock-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.3);
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+
+    .lock-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .lock-card {
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 32px 28px;
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      backdrop-filter: blur(12px);
+    }
+
+    .lock-icon {
+      width: 60px;
+      height: 60px;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid var(--primary);
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px auto;
+      font-size: 24px;
+      color: var(--accent);
+    }
+
+    .lock-card h2 {
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .lock-card p {
+      font-size: 13px;
+      color: var(--text-sub);
+      margin-bottom: 20px;
+    }
+
+    .pass-input-group {
+      position: relative;
+      margin-bottom: 12px;
+    }
+
+    .pass-input-group input {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.3s;
+      text-align: center;
+      letter-spacing: 2px;
+    }
+
+    .pass-input-group input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 12px rgba(6, 182, 212, 0.3);
+    }
+
+    .error-msg {
+      color: #ef4444;
+      font-size: 12px;
+      margin-bottom: 12px;
+      display: none;
+      font-weight: 600;
+    }
+
+    .btn-unlock {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-unlock:hover {
+      transform: translateY(-2px);
+      opacity: 0.95;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+
+    .shake {
+      animation: shake 0.4s ease-in-out;
+    }
+
     .container { max-width: 950px; margin: 0 auto; padding: 20px 16px; }
 
     /* Sticky Navbar Header */
@@ -334,6 +459,29 @@
 </head>
 <body>
 
+  <!-- MODAL / OVERLAY LOCK SCREEN -->
+  <div class="lock-overlay" id="lockOverlay">
+    <div class="lock-card" id="lockCard">
+      <div class="lock-icon">
+        <i class="fa-solid fa-lock"></i>
+      </div>
+      <h2>Akses Terkunci</h2>
+      <p>Masukkan password untuk melihat seluruh informasi CV lengkap.</p>
+      
+      <form id="passForm" onsubmit="unlockCV(event)">
+        <div class="pass-input-group">
+          <input type="password" id="passInput" placeholder="Password..." required autocomplete="off">
+        </div>
+        <div class="error-msg" id="errorMsg">
+          <i class="fa-solid fa-circle-exclamation"></i> Password salah, coba lagi!
+        </div>
+        <button type="submit" class="btn-unlock">
+          <i class="fa-solid fa-key"></i> Buka CV
+        </button>
+      </form>
+    </div>
+  </div>
+
   <!-- SIDEBAR OVERLAY -->
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
@@ -353,7 +501,8 @@
     </div>
   </div>
 
-  <div class="container">
+  <!-- WRAPPER UNTUK CONTENT (DI-BLUR SAAT TERKUNCI) -->
+  <div class="container content-blurred" id="mainContent">
 
     <!-- NAVBAR HEADER -->
     <div class="nav-bar">
@@ -547,8 +696,46 @@
 
   </div>
 
-  <!-- JAVASCRIPT FOR SIDEBAR MENU TOGGLE -->
+  <!-- JAVASCRIPT UNTUK SIDEBAR & LOGIK PASSWORD -->
   <script>
+    // --- ATUR PASSWORD KAMU DI SINI ---
+    const SECRET_PASSWORD = "experience"; 
+
+    // Logik Verifikasi Password
+    function unlockCV(event) {
+      event.preventDefault();
+      const input = document.getElementById('passInput').value;
+      const errorMsg = document.getElementById('errorMsg');
+      const lockCard = document.getElementById('lockCard');
+      const lockOverlay = document.getElementById('lockOverlay');
+      const mainContent = document.getElementById('mainContent');
+
+      if (input === SECRET_PASSWORD) {
+        // Hilangkan blur pada konten utama
+        mainContent.classList.remove('content-blurred');
+        // Sembunyikan overlay password
+        lockOverlay.classList.add('hidden');
+        
+        // Simpan status unlock di session agar kalau di-refresh tidak perlu ketik ulang
+        sessionStorage.setItem('cv_unlocked', 'true');
+      } else {
+        errorMsg.style.display = 'block';
+        lockCard.classList.add('shake');
+        setTimeout(() => {
+          lockCard.classList.remove('shake');
+        }, 400);
+      }
+    }
+
+    // Cek apakah user sudah pernah masukkan password di sesi ini
+    window.addEventListener('DOMContentLoaded', () => {
+      if (sessionStorage.getItem('cv_unlocked') === 'true') {
+        document.getElementById('mainContent').classList.remove('content-blurred');
+        document.getElementById('lockOverlay').classList.add('hidden');
+      }
+    });
+
+    // Logik Navigation Sidebar Menu
     const openSidebar = document.getElementById('openSidebar');
     const closeSidebar = document.getElementById('closeSidebar');
     const sidebar = document.getElementById('sidebar');
@@ -570,5 +757,4 @@
   </script>
 
 </body>
-  </html>
-  
+</html>
