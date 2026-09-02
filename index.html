@@ -63,7 +63,7 @@
     .lock-overlay {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(15, 23, 42, 0.5);
+      background: rgba(15, 23, 42, 0.6);
       z-index: 9999;
       display: flex;
       justify-content: center;
@@ -79,7 +79,7 @@
 
     .lock-card {
       position: relative;
-      background: rgba(30, 41, 59, 0.9);
+      background: rgba(30, 41, 59, 0.95);
       border: 1px solid var(--glass-border);
       border-radius: 24px;
       padding: 32px 28px;
@@ -179,6 +179,23 @@
     .btn-unlock:hover {
       transform: translateY(-2px);
       opacity: 0.95;
+    }
+
+    /* DESAIN KHUSUS TOMBOL DISCLAIMER */
+    .btn-agree {
+      background: linear-gradient(135deg, #10b981, #059669) !important;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3) !important;
+    }
+
+    .btn-disagree {
+      background: rgba(239, 68, 68, 0.15) !important;
+      border: 1px solid #ef4444 !important;
+      color: #f87171 !important;
+      box-shadow: none !important;
+    }
+    .btn-disagree:hover {
+      background: rgba(239, 68, 68, 0.25) !important;
+      color: #fff !important;
     }
 
     /* BANTUAN KODE DOWNLOAD */
@@ -540,7 +557,7 @@
           <i class="fa-solid fa-circle-exclamation"></i> Kode kamu salah!
         </div>
         <button type="submit" class="btn-unlock">
-          <i class="fa-solid fa-download"></i> Unduh Berkas
+          <i class="fa-solid fa-arrow-right"></i> Lanjutkan
         </button>
       </form>
 
@@ -549,6 +566,34 @@
         <div class="help-msg" id="helpMsg">
           <i class="fa-solid fa-circle-info"></i> kalo mau kode silahkan hubungi Riky yaa
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL / OVERLAY DISCLAIMER KETENTUAN CV -->
+  <div class="lock-overlay hidden" id="disclaimerModal">
+    <div class="lock-card" style="max-width: 420px; border-color: rgba(239, 68, 68, 0.4);">
+      <div class="lock-icon" style="background: rgba(239, 68, 68, 0.15); border-color: #ef4444; color: #f87171;">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <h2 style="font-size: 22px; color: #fff; margin-bottom: 12px;">PERHATIAN PENTING</h2>
+      
+      <div style="background: rgba(15, 23, 42, 0.7); padding: 16px; border-radius: 14px; border: 1px solid var(--glass-border); margin-bottom: 20px; text-align: left;">
+        <p style="font-size: 13px; color: #f8fafc; font-weight: 600; line-height: 1.6; margin-bottom: 0;">
+          <i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b; margin-right: 6px;"></i>
+          Dokumen CV ini <strong>HANYA UNTUK KEPERLUAN REKRUTMEN WORK & PROFESSIONAL REQUIREMENT</strong>.
+          <br><br>
+          Dilarang keras menyebarluaskan, menyalin, atau mempublikasikan dokumen ini kepada pihak lain tanpa izin tertulis.
+        </p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button type="button" onclick="confirmAndDownload()" class="btn-unlock btn-agree">
+          <i class="fa-solid fa-circle-check"></i> MENGERTI
+        </button>
+        <button type="button" onclick="cancelAndGoHome()" class="btn-unlock btn-disagree">
+          <i class="fa-solid fa-circle-xmark"></i> TIDAK MENGERTI
+        </button>
       </div>
     </div>
   </div>
@@ -804,7 +849,7 @@
       }
     });
 
-    // 2. Logik Modal Download CV
+    // 2. Logik Modal Download CV & Disclaimer
     function openDownloadModal() {
       document.getElementById('downloadModal').classList.remove('hidden');
       document.getElementById('dlCodeInput').focus();
@@ -824,16 +869,11 @@
       const dlCard = document.getElementById('dlCard');
 
       if (inputCode === DOWNLOAD_CODE) {
-        // Buat elemen link darurat untuk eksekusi download
-        const a = document.createElement('a');
-        a.href = 'CV MUHAMMAD RIKY H..pdf';
-        a.download = 'CV MUHAMMAD RIKY H..pdf';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-
-        // Tutup modal setelah mengunduh
+        // Tutup modal kode download
         closeDownloadModal();
+        
+        // Tampilkan modal disclaimer ketentuan
+        document.getElementById('disclaimerModal').classList.remove('hidden');
       } else {
         dlErrorMsg.style.display = 'block';
         dlCard.classList.add('shake');
@@ -841,6 +881,25 @@
           dlCard.classList.remove('shake');
         }, 400);
       }
+    }
+
+    // Jika klik "MENGERTI" -> CV Terdownload
+    function confirmAndDownload() {
+      const a = document.createElement('a');
+      a.href = 'CV MUHAMMAD RIKY H..pdf';
+      a.download = 'CV MUHAMMAD RIKY H..pdf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      // Tutup modal disclaimer
+      document.getElementById('disclaimerModal').classList.add('hidden');
+    }
+
+    // Jika klik "TIDAK MENGERTI" -> Kembali ke halaman awal
+    function cancelAndGoHome() {
+      document.getElementById('disclaimerModal').classList.add('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function showHelpInfo() {
